@@ -86,35 +86,38 @@ class Ai():
 
 	@task
 	def research_task(self) -> Task:
-		return Task(
+		self.research_task_instance = Task(
 			config=self.tasks_config['research_task'],
 			agent=self.researcher,
-			async_execution=True,
+			# async_execution=True,
 		)
+		return self.research_task_instance
 
 	@task
 	def profile_task(self) -> Task:
-		return Task(
+		self.profile_task_instance = Task(
 			config=self.tasks_config['profile_task'],
 			agent=self.profiler,
-			async_execution=True,
+			# async_execution=True,
 		)
+		return self.profile_task_instance
   
 	@task
 	def resume_strategy_task(self) -> Task:
-		return Task(
+		self.resume_strategy_task_instance = Task(
 			config=self.tasks_config['resume_strategy_task'],
 			agent=self.resume_strategist,
-			context=[self.profile_task, self.research_task],
+			context=[self.profile_task_instance, self.research_task_instance],
 			# async_execution=True,
 		)
-	
+		return self.resume_strategy_task_instance
+
 	@task
 	def interview_preparation_task(self) -> Task:
 		return Task(
 			config=self.tasks_config['interview_preparation_task'],
 			agent=self.interview_preparer,
-			context=[self.resume_strategy_task, self.profile_task, self.research_task],
+			context=[self.profile_task_instance, self.resume_strategy_task_instance, self.research_task_instance],
 			# async_execution=True,
 		)
 
