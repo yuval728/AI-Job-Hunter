@@ -1,23 +1,29 @@
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool, FileReadTool, PDFSearchTool
+from ai.tools.pdf_content_reader import PDFContentReader
 import warnings
 # import configparser
 warnings.filterwarnings("ignore")
 # config = configparser.ConfigParser(interpolation=None)
 
 llm = LLM(
-	# model="groq/llama-3.3-70b-specdec",
-    model='groq/deepseek-r1-distill-llama-70b',
+	model="groq/llama-3.3-70b-versatile",
+    # model='groq/deepseek-r1-distill-llama-70b',
 	# model='groq/gemma2-9b-it',
 	temperature=0.2,
 )
 
 manager_llm = LLM(
-	model="groq/qwen-2.5-32b",
+	model="groq/mixtral-8x7b-32768",
 	temperature=0.2,
 )
 
+function_calling_llm = LLM(
+    # model="groq/llama-3.3-70b-versatile",
+    model="groq/qwen-2.5-32b",
+    temperature=0.2,
+)
 
 @CrewBase
 class Ai:
@@ -27,33 +33,32 @@ class Ai:
     tasks_config = "config/tasks.yaml"
 
 
-    function_calling_llm = LLM(
-        model="groq/llama-3.3-70b-specdec",
-        temperature=0.2,
-    )
     def __init__(self, file_path):
         self.search_tool = SerperDevTool()
         self.scrape_tool = ScrapeWebsiteTool()
         # self.read_resume = FileReadTool(file_path)
-        self.semantic_search_job = PDFSearchTool(
-            pdf=file_path,
-            config=dict(
-                llm=dict(
-                    provider="groq",
-                    config=dict(
-                        model="mixtral-8x7b-32768",
-                        # model="groq/llama-3.3-70b-versatile",
-                    ),
-                ),
-                embedder=dict(
-                    provider="huggingface",
-                    config=dict(
-                        model="BAAI/bge-large-en-v1.5",
-                        # task_type="retrieval_document",
-                    ),
-                ),
-            ),
-        )
+        self.read_resume = PDFContentReader(file_path)
+        # self.semantic_search_job = PDFSearchTool(
+        #     pdf=file_path,
+        #     config=dict(
+        #         llm=dict(
+        #             provider="groq",
+        #             config=dict(
+        #                 # model="mixtral-8x7b-32768",
+        #                 model = 'qwen-2.5-32b',
+                        
+        #                 # model="groq/llama-3.3-70b-versatile",
+        #             ),
+        #         ),
+        #         embedder=dict(
+        #             provider="huggingface",
+        #             config=dict(
+        #                 model="BAAI/bge-large-en-v1.5",
+        #                 # task_type="retrieval_document",
+        #             ),
+        #         ),
+        #     ),
+        # )
 
     @agent
     def researcher(self) -> Agent:
@@ -62,7 +67,7 @@ class Ai:
             verbose=True,
             llm=llm,
             tools=[self.search_tool, self.scrape_tool],
-            # function_calling_llm=self.function_calling_llm,
+            function_calling_llm=function_calling_llm,
             # max_retry_limit=100,
         )
 
@@ -75,10 +80,10 @@ class Ai:
             tools=[
                 # self.search_tool,
                 self.scrape_tool,
-                # self.read_resume,
-                self.semantic_search_job,
+                self.read_resume,
+                # self.semantic_search_job,
             ],
-            # function_calling_llm=self.function_calling_llm,
+            function_calling_llm=function_calling_llm,
             max_rpm=3,
 			# max_retry_limit=100,
         )
@@ -90,12 +95,12 @@ class Ai:
             verbose=True,
             llm=llm,
             tools=[
-                # self.read_resume,
+                self.read_resume,
                 self.search_tool,
                 self.scrape_tool,
-                self.semantic_search_job,
+                # self.semantic_search_job,
             ],
-            # function_calling_llm=self.function_calling_llm,
+            function_calling_llm=function_calling_llm,
             max_rpm=3,
             # max_retry_limit=100,
         )
@@ -109,10 +114,10 @@ class Ai:
             tools=[
                 self.search_tool,
                 self.scrape_tool,
-                # self.read_resume,
-                self.semantic_search_job,
+                self.read_resume,
+                # self.semantic_search_job,
             ],
-            # function_calling_llm=self.function_calling_llm,
+            function_calling_llm=function_calling_llm,
             max_rpm=3,
             # max_retry_limit=100,
         )
@@ -164,6 +169,6 @@ class Ai:
             tasks=self.tasks,  # Automatically created by the @task decorator
             process=Process.sequential,
             verbose=True,
-            manager_llm=manager_llm,
+            # manager_llm=manager_llm,
             # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )
