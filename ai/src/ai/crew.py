@@ -9,19 +9,21 @@ warnings.filterwarnings("ignore")
 
 llm = LLM(
 	model="groq/llama-3.3-70b-versatile",
-    # model='groq/deepseek-r1-distill-llama-70b',
-	# model='groq/gemma2-9b-it',
+    # model='ollama/qwen2.5:3b',
+    # model = 'mistral/mistral-large-2411',
 	temperature=0.2,
 )
 
 manager_llm = LLM(
-	model="groq/mixtral-8x7b-32768",
+	# model="groq/mixtral-8x7b-32768",
+    model="groq/llama-3.3-70b-versatile",
 	temperature=0.2,
 )
 
 function_calling_llm = LLM(
     # model="groq/llama-3.3-70b-versatile",
-    model="groq/qwen-2.5-32b",
+    model='ollama/qwen2.5:3b',
+    # model="groq/qwen-2.5-32b",
     temperature=0.2,
 )
 
@@ -38,27 +40,27 @@ class Ai:
         self.scrape_tool = ScrapeWebsiteTool()
         # self.read_resume = FileReadTool(file_path)
         self.read_resume = PDFContentReader(file_path)
-        # self.semantic_search_job = PDFSearchTool(
-        #     pdf=file_path,
-        #     config=dict(
-        #         llm=dict(
-        #             provider="groq",
-        #             config=dict(
-        #                 # model="mixtral-8x7b-32768",
-        #                 model = 'qwen-2.5-32b',
+        self.semantic_search_job = PDFSearchTool(
+            pdf=file_path,
+            config=dict(
+                llm=dict(
+                    provider="groq",
+                    config=dict(
+                        # model="mixtral-8x7b-32768",
+                        model = 'qwen-2.5-32b',
                         
-        #                 # model="groq/llama-3.3-70b-versatile",
-        #             ),
-        #         ),
-        #         embedder=dict(
-        #             provider="huggingface",
-        #             config=dict(
-        #                 model="BAAI/bge-large-en-v1.5",
-        #                 # task_type="retrieval_document",
-        #             ),
-        #         ),
-        #     ),
-        # )
+                        # model="groq/llama-3.3-70b-versatile",
+                    ),
+                ),
+                embedder=dict(
+                    provider="huggingface",
+                    config=dict(
+                        model="BAAI/bge-large-en-v1.5",
+                        # task_type="retrieval_document",
+                    ),
+                ),
+            ),
+        )
 
     @agent
     def researcher(self) -> Agent:
@@ -67,7 +69,7 @@ class Ai:
             verbose=True,
             llm=llm,
             tools=[self.search_tool, self.scrape_tool],
-            function_calling_llm=function_calling_llm,
+            # function_calling_llm=function_calling_llm,
             # max_retry_limit=100,
         )
 
@@ -81,10 +83,10 @@ class Ai:
                 # self.search_tool,
                 self.scrape_tool,
                 self.read_resume,
-                # self.semantic_search_job,
+                self.semantic_search_job,
             ],
             function_calling_llm=function_calling_llm,
-            max_rpm=3,
+            max_rpm=5,
 			# max_retry_limit=100,
         )
 
@@ -98,10 +100,10 @@ class Ai:
                 self.read_resume,
                 self.search_tool,
                 self.scrape_tool,
-                # self.semantic_search_job,
+                self.semantic_search_job,
             ],
             function_calling_llm=function_calling_llm,
-            max_rpm=3,
+            max_rpm=5,
             # max_retry_limit=100,
         )
 
@@ -115,10 +117,10 @@ class Ai:
                 self.search_tool,
                 self.scrape_tool,
                 self.read_resume,
-                # self.semantic_search_job,
+                self.semantic_search_job,
             ],
             function_calling_llm=function_calling_llm,
-            max_rpm=3,
+            max_rpm=5,
             # max_retry_limit=100,
         )
 
